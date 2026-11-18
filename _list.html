@@ -1,0 +1,42 @@
+<input type="hidden" name="filter" value="{{ filter }}">
+{% if total %}
+<div class="funnel" aria-hidden="true">
+  {% for s in statuses %}{% if counts[s] %}<i class="s-{{ s|lower }}" style="flex:{{ counts[s] }}"></i>{% endif %}{% endfor %}
+</div>
+{% endif %}
+<nav class="chips" aria-label="Filter by status">
+  <button class="chip {{ 'on' if not filter }}" hx-get="/applications" hx-vals='{"filter": ""}' hx-include="[name=q]">All <b>{{ total }}</b></button>
+  {% for s in statuses %}
+  <button class="chip {{ 'on' if filter == s }}" hx-get="/applications" hx-vals='{"filter": "{{ s }}"}' hx-include="[name=q]">{{ s }} <b>{{ counts[s] }}</b></button>
+  {% endfor %}
+</nav>
+
+{% for a in apps %}
+{% set days = (today - a.applied_on).days %}
+<article class="row s-{{ a.status|lower }}">
+  <div>
+    <h3>{{ a.company }}</h3>
+    <p>{{ a.role }}{% if a.location %} · {{ a.location }}{% endif %}</p>
+    <p>
+      {% if days <= 0 %}Applied today{% else %}Applied {{ days }}d ago{% endif %}
+      {% if a.status == 'Applied' and days >= stale_days %}<span class="flag"> · Time to follow up</span>{% endif %}
+      {% if a.link %} · <a href="{{ a.link }}" target="_blank" rel="noopener">Posting</a>{% endif %}
+    </p>
+  </div>
+  <div class="acts">
+    <select name="status" aria-label="Status for {{ a.company }}"
+            hx-post="/applications/{{ a.id }}/status" hx-trigger="change" hx-include="[name=q],[name=filter]">
+      {% for s in statuses %}<option {{ 'selected' if s == a.status }}>{{ s }}</option>{% endfor %}
+    </select>
+    <button class="del" title="Delete" aria-label="Delete {{ a.company }}"
+            hx-post="/applications/{{ a.id }}/delete" hx-include="[name=q],[name=filter]"
+            hx-confirm="Delete {{ a.company }}?">Delete</button>
+  </div>
+  {% if a.notes %}<div class="note">{{ a.notes }}</div>{% endif %}
+</article>
+{% else %}
+<div class="empty">
+  {% if q or filter %}Nothing matches. Clear the search or pick All.
+  {% else %}No applications yet. Add your first one on the left.{% endif %}
+</div>
+{% endfor %}
