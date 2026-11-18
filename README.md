@@ -1,5 +1,5 @@
 # Job Tracker
-FastAPI + SQLModel (SQLite) + Jinja2 + HTMX. No Node, no build step.
+FastAPI + SQLModel (SQLite) + Jinja2 + HTMX.
 
     python -m venv .venv && source .venv/bin/activate
     pip install -r requirements.txt
